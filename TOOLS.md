@@ -38,3 +38,10 @@ Skills are shared. Your setup is yours. Keeping them apart means you can update 
 ---
 
 Add whatever helps you do your job. This is your cheat sheet.
+
+## TTS Configuration
+
+- **Provider:** DashScope (阿里云)
+- **Preferred Model:** cosyvoice-v2
+- **Preferred Voice:** longxiaochun (自然女声)
+
