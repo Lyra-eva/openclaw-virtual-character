@@ -2,6 +2,9 @@
 node_modules/
 package-lock.json
 
+# Paperclip (optional local AI)
+.paperclip/
+
 # OpenClaw local config
 .openclaw/
 
