@@ -1,0 +1,37 @@
+# Node modules
+node_modules/
+package-lock.json
+
+# OpenClaw local config
+.openclaw/
+
+# Clawdhub local cache
+.clawdhub/
+.clawhub/
+
+# API keys and secrets
+paperclip-claimed-api-key.json
+*.env
+.env.local
+.env.*.local
+
+# Memory (personal data)
+memory/
+MEMORY.md
+
+# Avatar (local files)
+openclaw-avatar/
+
+# Logs
+*.log
+logs/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
