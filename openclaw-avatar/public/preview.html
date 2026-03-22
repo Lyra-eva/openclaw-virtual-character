@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OpenClaw Avatar - 界面预览</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      color: #fff;
+      overflow: hidden;
+      width: 1200px;
+      height: 800px;
+    }
+
+    /* HUD 顶部状态栏 */
+    .hud-top {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      padding: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      z-index: 100;
+    }
+
+    .hud-left {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .hud-card {
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(10px);
+      padding: 8px 16px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: fit-content;
+    }
+
+    .hud-card .icon {
+      font-size: 24px;
+    }
+
+    .hud-card .label {
+      font-size: 12px;
+      color: #9ca3af;
+    }
+
+    .hud-card .value {
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    .exp-bar {
+      width: 160px;
+      height: 8px;
+      background: rgba(55, 65, 81, 0.8);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .exp-fill {
+      height: 100%;
+      background: linear-gradient(to right, #fbbf24, #f59e0b);
+      width: 65%;
+      border-radius: 4px;
+    }
+
+    .hud-right {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      align-items: flex-end;
+    }
+
+    .status-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+    }
+
+    .status-badge.connected {
+      background: rgba(34, 197, 94, 0.2);
+      color: #22c55e;
+    }
+
+    .status-badge.recording {
+      background: rgba(239, 68, 68, 0.2);
+      color: #ef4444;
+    }
+
+    .status-badge.speaking {
+      background: rgba(59, 130, 246, 0.2);
+      color: #3b82f6;
+    }
+
+    .status-badge.engine-stt {
+      background: rgba(168, 85, 247, 0.2);
+      color: #a855f7;
+    }
+
+    .status-badge.engine-tts {
+      background: rgba(236, 72, 153, 0.2);
+      color: #ec4899;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    .status-dot.pulse {
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    /* 3D 人物区域 */
+    .avatar-container {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 400px;
+      height: 500px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .avatar-placeholder {
+      width: 300px;
+      height: 400px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+      border-radius: 20px;
+      border: 2px solid rgba(255,255,255,0.1);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .avatar-placeholder::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(147, 51, 234, 0.1) 0%, transparent 70%);
+      animation: glow 3s infinite;
+    }
+
+    @keyframes glow {
+      0%, 100% { transform: scale(1); opacity: 0.5; }
+      50% { transform: scale(1.1); opacity: 0.8; }
+    }
+
+    .avatar-emoji {
+      font-size: 80px;
+      z-index: 1;
+      animation: breathe 2s infinite ease-in-out;
+    }
+
+    @keyframes breathe {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    .avatar-label {
+      margin-top: 16px;
+      font-size: 14px;
+      color: #9ca3af;
+      z-index: 1;
+    }
+
+    .avatar-status {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      padding: 4px 8px;
+      background: rgba(59, 130, 246, 0.2);
+      border-radius: 8px;
+      font-size: 12px;
+      color: #3b82f6;
+      z-index: 2;
+    }
+
+    /* 对话气泡区域 */
+    .chat-area {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 24px;
+      background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 100%);
+    }
+
+    .chat-container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .messages {
+      height: 180px;
+      overflow-y: auto;
+      margin-bottom: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .message {
+      max-width: 70%;
+      padding: 12px 16px;
+      border-radius: 16px;
+      animation: slideUp 0.3s ease-out;
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.9);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .message.user {
+      align-self: flex-end;
+      background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+      margin-left: auto;
+      border-bottom-right-radius: 4px;
+    }
+
+    .message.assistant {
+      align-self: flex-start;
+      background: rgba(55, 65, 81, 0.9);
+      border-bottom-left-radius: 4px;
+    }
+
+    .message-content {
+      font-size: 14px;
+      line-height: 1.5;
+      margin-bottom: 4px;
+    }
+
+    .message-time {
+      font-size: 11px;
+      color: rgba(255,255,255,0.6);
+    }
+
+    .message.user .message-time {
+      color: rgba(255,255,255,0.7);
+    }
+
+    .typing-indicator {
+      display: flex;
+      gap: 4px;
+      padding: 12px 16px;
+      background: rgba(55, 65, 81, 0.9);
+      border-radius: 16px;
+      width: fit-content;
+    }
+
+    .typing-dot {
+      width: 8px;
+      height: 8px;
+      background: #9ca3af;
+      border-radius: 50%;
+      animation: typing 1.4s infinite;
+    }
+
+    .typing-dot:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+
+    .typing-dot:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+
+    @keyframes typing {
+      0%, 60%, 100% {
+        transform: translateY(0);
+        opacity: 0.4;
+      }
+      30% {
+        transform: translateY(-10px);
+        opacity: 1;
+      }
+    }
+
+    .transcription-bubble {
+      background: rgba(59, 130, 246, 0.8);
+      padding: 10px 16px;
+      border-radius: 12px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      animation: slideUp 0.3s ease-out;
+    }
+
+    .transcription-text {
+      font-size: 14px;
+      flex: 1;
+    }
+
+    .transcription-cursor {
+      width: 2px;
+      height: 16px;
+      background: #fff;
+      animation: blink 1s infinite;
+    }
+
+    @keyframes blink {
+      0%, 50% { opacity: 1; }
+      51%, 100% { opacity: 0; }
+    }
+
+    /* 底部控制栏 */
+    .controls {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 16px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .control-btn {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      transition: all 0.3s ease;
+    }
+
+    .control-btn.voice {
+      background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+      box-shadow: 0 4px 20px rgba(59, 130, 246, 0.4);
+    }
+
+    .control-btn.voice:hover {
+      transform: scale(1.1);
+      box-shadow: 0 6px 30px rgba(59, 130, 246, 0.6);
+    }
+
+    .control-btn.voice.recording {
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+      box-shadow: 0 4px 20px rgba(239, 68, 68, 0.4);
+      animation: recordPulse 1s infinite;
+    }
+
+    @keyframes recordPulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+    }
+
+    .control-btn.settings {
+      background: rgba(75, 85, 99, 0.8);
+      font-size: 24px;
+    }
+
+    .control-btn.settings:hover {
+      background: rgba(107, 114, 128, 0.8);
+      transform: rotate(90deg);
+    }
+
+    /* 标题 */
+    .app-title {
+      position: absolute;
+      top: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 20px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.8);
+      letter-spacing: 1px;
+      z-index: 50;
+    }
+
+    .app-title span {
+      color: #8b5cf6;
+    }
+  </style>
+</head>
+<body>
+  <!-- 顶部 HUD -->
+  <div class="hud-top">
+    <div class="hud-left">
+      <div class="hud-card">
+        <span class="icon">⭐</span>
+        <div>
+          <div class="label">等级</div>
+          <div class="value">Lv.5</div>
+        </div>
+      </div>
+      
+      <div class="hud-card">
+        <div>
+          <div class="label">经验</div>
+          <div class="exp-bar">
+            <div class="exp-fill"></div>
+          </div>
+          <div class="label" style="margin-top: 4px; font-size: 10px;">650 / 1000</div>
+        </div>
+      </div>
+      
+      <div class="hud-card">
+        <span class="icon">💕</span>
+        <div>
+          <div class="label">亲密度</div>
+          <div class="value">1,280</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="hud-right">
+      <div class="status-badge connected">
+        <div class="status-dot"></div>
+        <span>已连接</span>
+      </div>
+      
+      <div class="status-badge engine-stt">
+        <span>🎤</span>
+        <span>Whisper 离线</span>
+      </div>
+      
+      <div class="status-badge engine-tts">
+        <span>🔊</span>
+        <span>ElevenLabs</span>
+      </div>
+      
+      <div class="status-badge speaking">
+        <div class="status-dot pulse"></div>
+        <span>AI 说话中</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 应用标题 -->
+  <div class="app-title">OpenClaw <span>Avatar</span></div>
+
+  <!-- 3D 人物区域 -->
+  <div class="avatar-container">
+    <div class="avatar-placeholder">
+      <div class="avatar-status">🔊 说话中</div>
+      <div class="avatar-emoji">👩</div>
+      <div class="avatar-label">AI 助手 · Bella</div>
+    </div>
+  </div>
+
+  <!-- 对话区域 -->
+  <div class="chat-area">
+    <div class="chat-container">
+      <!-- 实时转录 -->
+      <div class="transcription-bubble">
+        <span class="transcription-text">今天天气真好，我们一起去公园散步吧</span>
+        <div class="transcription-cursor"></div>
+      </div>
+
+      <!-- 消息历史 -->
+      <div class="messages">
+        <div class="message user">
+          <div class="message-content">你好呀！今天有什么可以帮我的吗？</div>
+          <div class="message-time">14:32</div>
+        </div>
+        
+        <div class="message assistant">
+          <div class="message-content">你好！我是你的 AI 助手。今天我可以帮你查询天气、设置提醒、回答问题，或者只是聊聊天。有什么需要尽管告诉我！😊</div>
+          <div class="message-time">14:32</div>
+        </div>
+        
+        <div class="typing-indicator">
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+        </div>
+      </div>
+
+      <!-- 底部控制 -->
+      <div class="controls">
+        <button class="control-btn voice recording">
+          🎤
+        </button>
+        <button class="control-btn settings">
+          ⚙️
+        </button>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OpenClaw Avatar - 最终界面预览</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      color: #fff;
+      overflow: hidden;
+      width: 1200px;
+      height: 800px;
+    }
+
+    /* HUD 顶部状态栏 */
+    .hud-top {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      padding: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      z-index: 100;
+    }
+
+    .hud-left {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .hud-card {
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(10px);
+      padding: 10px 18px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.1);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: fit-content;
+    }
+
+    .hud-card .label {
+      font-size: 11px;
+      color: #9ca3af;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .hud-card .value {
+      font-size: 20px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .exp-container {
+      width: 180px;
+    }
+
+    .exp-bar {
+      height: 10px;
+      background: rgba(55, 65, 81, 0.8);
+      border-radius: 5px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .exp-fill {
+      height: 100%;
+      background: linear-gradient(to right, #fbbf24, #f59e0b);
+      width: 65%;
+      border-radius: 5px;
+      box-shadow: 0 0 10px rgba(251, 191, 36, 0.5);
+    }
+
+    .hud-right {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      align-items: flex-end;
+    }
+
+    .status-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 500;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .status-badge.connected {
+      background: rgba(34, 197, 94, 0.15);
+      color: #22c55e;
+      border-color: rgba(34, 197, 94, 0.3);
+    }
+
+    .status-badge.speaking {
+      background: rgba(59, 130, 246, 0.15);
+      color: #3b82f6;
+      border-color: rgba(59, 130, 246, 0.3);
+    }
+
+    .status-badge.engine-stt {
+      background: rgba(168, 85, 247, 0.15);
+      color: #a855f7;
+      border-color: rgba(168, 85, 247, 0.3);
+    }
+
+    .status-badge.engine-tts {
+      background: rgba(236, 72, 153, 0.15);
+      color: #ec4899;
+      border-color: rgba(236, 72, 153, 0.3);
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    .status-dot.pulse {
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(1.2); }
+    }
+
+    /* 3D 人物区域 */
+    .avatar-container {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 400px;
+      height: 500px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .avatar-circle {
+      width: 300px;
+      height: 300px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, rgba(139, 92, 246, 0.2) 0%, rgba(59, 130, 246, 0.2) 100%);
+      border: 3px solid rgba(139, 92, 246, 0.6);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      box-shadow: 0 0 80px rgba(139, 92, 246, 0.4), inset 0 0 60px rgba(139, 92, 246, 0.1);
+      animation: avatarGlow 3s infinite ease-in-out;
+    }
+
+    @keyframes avatarGlow {
+      0%, 100% { 
+        box-shadow: 0 0 80px rgba(139, 92, 246, 0.4), inset 0 0 60px rgba(139, 92, 246, 0.1);
+        border-color: rgba(139, 92, 246, 0.6);
+      }
+      50% { 
+        box-shadow: 0 0 120px rgba(139, 92, 246, 0.6), inset 0 0 80px rgba(139, 92, 246, 0.2);
+        border-color: rgba(139, 92, 246, 0.8);
+      }
+    }
+
+    .avatar-icon {
+      width: 120px;
+      height: 120px;
+      background: linear-gradient(135deg, #8b5cf6 0%, #3b82f6 100%);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 60px;
+      font-weight: 300;
+      color: #fff;
+      animation: breathe 2s infinite ease-in-out;
+      box-shadow: 0 10px 40px rgba(139, 92, 246, 0.5);
+    }
+
+    @keyframes breathe {
+      0%, 100% { transform: translateY(0) scale(1); }
+      50% { transform: translateY(-10px) scale(1.05); }
+    }
+
+    .avatar-status {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      padding: 6px 14px;
+      background: rgba(59, 130, 246, 0.95);
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+    }
+
+    .avatar-label {
+      position: absolute;
+      bottom: -45px;
+      font-size: 16px;
+      color: #e5e7eb;
+      font-weight: 600;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+    }
+
+    /* 对话气泡区域 */
+    .chat-area {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 24px;
+      background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, transparent 100%);
+    }
+
+    .chat-container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .messages {
+      height: 150px;
+      overflow-y: auto;
+      margin-bottom: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .message {
+      max-width: 70%;
+      padding: 14px 18px;
+      border-radius: 18px;
+      animation: slideUp 0.3s ease-out;
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.95);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .message.user {
+      align-self: flex-end;
+      background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+      margin-left: auto;
+      border-bottom-right-radius: 6px;
+      box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+    }
+
+    .message.assistant {
+      align-self: flex-start;
+      background: rgba(55, 65, 81, 0.95);
+      border-bottom-left-radius: 6px;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .message-content {
+      font-size: 14px;
+      line-height: 1.6;
+      margin-bottom: 6px;
+    }
+
+    .message-time {
+      font-size: 11px;
+      color: rgba(255,255,255,0.5);
+    }
+
+    .typing-indicator {
+      display: flex;
+      gap: 5px;
+      padding: 14px 18px;
+      background: rgba(55, 65, 81, 0.95);
+      border-radius: 18px;
+      width: fit-content;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .typing-dot {
+      width: 9px;
+      height: 9px;
+      background: #9ca3af;
+      border-radius: 50%;
+      animation: typing 1.4s infinite;
+    }
+
+    .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes typing {
+      0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+      30% { transform: translateY(-10px); opacity: 1; }
+    }
+
+    .transcription-bubble {
+      background: rgba(59, 130, 246, 0.9);
+      padding: 14px 20px;
+      border-radius: 16px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      animation: slideUp 0.3s ease-out;
+      border: 1px solid rgba(59, 130, 246, 0.4);
+      box-shadow: 0 4px 20px rgba(59, 130, 246, 0.3);
+    }
+
+    .mic-icon {
+      width: 28px;
+      height: 28px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .transcription-text {
+      font-size: 15px;
+      flex: 1;
+      color: #fff;
+      font-weight: 500;
+    }
+
+    .transcription-cursor {
+      width: 3px;
+      height: 20px;
+      background: #fff;
+      animation: blink 1s infinite;
+      flex-shrink: 0;
+      border-radius: 2px;
+    }
+
+    @keyframes blink {
+      0%, 50% { opacity: 1; }
+      51%, 100% { opacity: 0; }
+    }
+
+    /* 底部控制栏 */
+    .controls {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 20px;
+      padding-top: 20px;
+      border-top: 1px solid rgba(255,255,255,0.15);
+    }
+
+    .control-btn {
+      width: 70px;
+      height: 70px;
+      border-radius: 50%;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .control-btn.voice {
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+      box-shadow: 0 6px 25px rgba(239, 68, 68, 0.5);
+      animation: recordPulse 1.5s infinite;
+    }
+
+    .control-btn.voice svg {
+      width: 32px;
+      height: 32px;
+      fill: white;
+    }
+
+    @keyframes recordPulse {
+      0%, 100% { 
+        transform: scale(1);
+        box-shadow: 0 6px 25px rgba(239, 68, 68, 0.5);
+      }
+      50% { 
+        transform: scale(1.1);
+        box-shadow: 0 10px 35px rgba(239, 68, 68, 0.7);
+      }
+    }
+
+    .control-btn.settings {
+      background: rgba(75, 85, 99, 0.95);
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .control-btn.settings svg {
+      width: 32px;
+      height: 32px;
+      fill: #9ca3af;
+    }
+
+    .control-btn.settings:hover {
+      background: rgba(107, 114, 128, 0.95);
+    }
+
+    .control-btn.settings:hover svg {
+      fill: #fff;
+    }
+
+    /* 应用标题 */
+    .app-title {
+      position: absolute;
+      top: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 22px;
+      font-weight: 700;
+      color: rgba(255,255,255,0.95);
+      letter-spacing: 1.5px;
+      z-index: 50;
+    }
+
+    .app-title .highlight {
+      background: linear-gradient(135deg, #8b5cf6 0%, #3b82f6 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* 滚动条样式 */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: rgba(0,0,0,0.2);
+      border-radius: 3px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255,255,255,0.2);
+      border-radius: 3px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(255,255,255,0.3);
+    }
+  </style>
+</head>
+<body>
+  <!-- 顶部 HUD -->
+  <div class="hud-top">
+    <div class="hud-left">
+      <div class="hud-card">
+        <div>
+          <div class="label">LEVEL</div>
+          <div class="value">Lv.5</div>
+        </div>
+      </div>
+      
+      <div class="hud-card exp-container">
+        <div>
+          <div class="label">EXPERIENCE</div>
+          <div class="exp-bar">
+            <div class="exp-fill"></div>
+          </div>
+          <div class="label" style="margin-top: 6px; font-size: 11px; color: #6b7280;">650 / 1000 EXP</div>
+        </div>
+      </div>
+      
+      <div class="hud-card">
+        <div>
+          <div class="label">AFFINITY</div>
+          <div class="value">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="#ef4444" style="vertical-align: middle; margin-right: 4px;">
+              <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+            </svg>
+            1,280
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="hud-right">
+      <div class="status-badge connected">
+        <div class="status-dot"></div>
+        <span>已连接 OpenClaw</span>
+      </div>
+      
+      <div class="status-badge engine-stt">
+        <div class="status-dot"></div>
+        <span>🎤 Whisper 离线识别</span>
+      </div>
+      
+      <div class="status-badge engine-tts">
+        <div class="status-dot"></div>
+        <span>🔊 ElevenLabs TTS</span>
+      </div>
+      
+      <div class="status-badge speaking">
+        <div class="status-dot pulse"></div>
+        <span>AI 正在说话...</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 应用标题 -->
+  <div class="app-title">OpenClaw <span class="highlight">Avatar</span></div>
+
+  <!-- 3D 人物区域 -->
+  <div class="avatar-container">
+    <div class="avatar-circle">
+      <div class="avatar-status">🔊 说话中</div>
+      <div class="avatar-icon">
+        <!-- 人物剪影 SVG -->
+        <svg width="80" height="80" viewBox="0 0 24 24" fill="white" opacity="0.9">
+          <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+        </svg>
+      </div>
+      <div class="avatar-label">AI 助手 · Bella (温柔女声)</div>
+    </div>
+  </div>
+
+  <!-- 对话区域 -->
+  <div class="chat-area">
+    <div class="chat-container">
+      <!-- 实时转录 -->
+      <div class="transcription-bubble">
+        <div class="mic-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="white">
+            <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+            <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+          </svg>
+        </div>
+        <span class="transcription-text">今天天气真好，我们一起去公园散步吧</span>
+        <div class="transcription-cursor"></div>
+      </div>
+
+      <!-- 消息历史 -->
+      <div class="messages">
+        <div class="message user">
+          <div class="message-content">你好呀！今天有什么可以帮我的吗？</div>
+          <div class="message-time">14:32</div>
+        </div>
+        
+        <div class="message assistant">
+          <div class="message-content">你好！我是你的 AI 助手 Bella。今天我可以帮你查询天气、设置提醒、回答问题，或者只是聊聊天。有什么需要尽管告诉我！😊</div>
+          <div class="message-time">14:32</div>
+        </div>
+        
+        <div class="typing-indicator">
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+        </div>
+      </div>
+
+      <!-- 底部控制 -->
+      <div class="controls">
+        <button class="control-btn voice" title="按住说话">
+          <svg viewBox="0 0 24 24">
+            <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+            <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+          </svg>
+        </button>
+        <button class="control-btn settings" title="设置">
+          <svg viewBox="0 0 24 24">
+            <path d="M19.14 12.94c.04-.31.06-.63.06-.94 0-.31-.02-.63-.06-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.04.31-.06.63-.06.94s.02.63.06.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

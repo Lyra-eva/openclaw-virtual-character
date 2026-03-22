@@ -22,8 +22,8 @@ paperclip-claimed-api-key.json
 memory/
 MEMORY.md
 
-# Avatar (local files)
-openclaw-avatar/
+# Avatar (local files) - now tracked
+# openclaw-avatar/
 
 # Logs
 *.log
